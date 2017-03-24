@@ -23,7 +23,11 @@ void MyGLWidget::initializeGL ()
   glClearColor(0.5, 0.7, 1.0, 1.0); // defineix color de fons (d'esborrat)
   carregaShaders();
   createBuffers();
-  projectTransform((float)M_PI/2.0f, 1.0f, 0.4f, 3.0f);
+  FOV = (float)M_PI/2.0f;
+  ra = 1.0f;
+  znear = 0.4f;
+  zfar = 3.0f;
+  projectTransform();
   viewTransform(glm::vec3(1, 1, 1), glm::vec3(0,0,0), glm::vec3(0,1,0));
 }
 
@@ -55,6 +59,13 @@ void MyGLWidget::modelTransform ()
 
 void MyGLWidget::resizeGL (int w, int h) 
 {
+  float raNou = float(w) / float(h);
+  if(raNou <1 ){
+    FOV = 2 * (atan(tan((float)M_PI/4.0f)/ra));
+  }
+  ra = raNou;
+
+  projectTransform();
   glViewport(0, 0, w, h);
 }
 
@@ -83,6 +94,7 @@ void MyGLWidget::createBuffers ()
 {
 
   m.load("../../models/HomerProves.obj");
+  calculaCapsa();
   // Dades de la caseta
   // Dos VBOs, un amb posició i l'altre amb color
 
@@ -144,7 +156,27 @@ void MyGLWidget::viewTransform(glm::vec3 OBS, glm::vec3 VRP, glm::vec3 UP){
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &View[0][0]);
 }
 
-void MyGLWidget::projectTransform(float FOV, float ra, float znear, float zfar){
+void MyGLWidget::projectTransform(){
     glm::mat4 Proj = glm::perspective(FOV, ra, znear, zfar);
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, &Proj[0][0]);
+}
+
+void MyGLWidget::calculaCapsa(){
+  glm::vec3 min, max;
+  min.x = m.vertices()[0];
+  min.y = m.vertices()[1];
+  min.z = m.vertices()[2];
+  max = min;
+
+  for(int i=0;i<m.vertices().size();i++){
+    if(i%3==0){
+
+    }
+    if(i%3==1){
+
+    }
+    if(i%3==2){
+      
+    }
+  }
 }
