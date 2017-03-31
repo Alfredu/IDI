@@ -45,6 +45,9 @@ void MyGLWidget::paintGL ()
   // pintem
   glDrawArrays(GL_TRIANGLES, 0, m.faces().size() * 3);
 
+  glBindVertexArray(VAO_Terra);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
   glBindVertexArray (0);
 }
 
@@ -92,7 +95,17 @@ void MyGLWidget::keyPressEvent(QKeyEvent* event)
 
 void MyGLWidget::createBuffers () 
 {
+  glm::vec3 VerticesTerra[4];
 
+  VerticesTerra[0] = glm::vec3(-1.0,0.0,1.0);
+  VerticesTerra[1] = glm::vec3(-1.0,0.0,-1.0);
+  VerticesTerra[2] = glm::vec3(1.0,0.0,1.0);
+  VerticesTerra[3] = glm::vec3(1.0,0.0,-1.0);
+  
+  glm::vec3 colorTerra[4];
+  for(int i=0;i<4;i++){
+    colorTerra[i] = glm::vec3(1.0,0.0,1.0);
+  }
   m.load("../../models/HomerProves.obj");
   calculaCapsa();
   // Dades de la caseta
@@ -119,6 +132,25 @@ void MyGLWidget::createBuffers ()
   glEnableVertexAttribArray(colorLoc);
 
   glBindVertexArray (0);
+  
+  glGenVertexArrays(1, &VAO_Terra);
+  glBindVertexArray(VAO_Terra);
+
+  glGenBuffers(1, &VBO_TerraPos);
+  glBindBuffer(GL_ARRAY_BUFFER, VBO_TerraPos);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(VerticesTerra), VerticesTerra, GL_STATIC_DRAW);
+
+  //VertexLocTerra
+  glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(vertexLoc);
+
+  glGenBuffers(1, &VBO_TerraCol);
+  glBindBuffer(GL_ARRAY_BUFFER, VBO_TerraCol);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(colorTerra), colorTerra, GL_STATIC_DRAW);
+
+  glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(colorLoc);
+  glBindVertexArray(0);
 }
 
 void MyGLWidget::carregaShaders()

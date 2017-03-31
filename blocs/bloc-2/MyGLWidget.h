@@ -40,6 +40,8 @@ class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     GLuint projLoc;
     // VAO i VBO names
     GLuint VAO_Casa, VBO_CasaPos, VBO_CasaCol;
+
+    GLuint VAO_Terra, VBO_TerraPos, VBO_TerraCol;
     // Program
     QOpenGLShaderProgram *program;
     // Internal vars
