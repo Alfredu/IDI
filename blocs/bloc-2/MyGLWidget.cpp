@@ -169,14 +169,20 @@ void MyGLWidget::calculaCapsa(){
   max = min;
 
   for(int i=0;i<m.vertices().size();i++){
-    if(i%3==0){
 
+    if(i%3==0){
+      if(m.vertices()[0] < min.x){
+        min.x = m.vertices()[0];
+      }
+      if(m.vertices()[0] > max.x ){
+        max.x = m.vertices()[0];
+      }
     }
     if(i%3==1){
 
     }
     if(i%3==2){
-      
+
     }
   }
 }
