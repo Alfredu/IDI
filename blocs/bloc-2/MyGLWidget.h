@@ -7,6 +7,7 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "model.h"
+#include <map>
 
 class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core 
 {
@@ -54,8 +55,14 @@ class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     void viewTransform(glm::vec3 OBS, glm::vec3 VRP, glm::vec3 UP);
 
     void projectTransform();
-    void calculaCapsa();
+    void calculaCapsa(Model &model);
 
+    glm::vec3 minCapsa, maxCapsa;
 
+    glm::vec3 baseHomer();
+
+    void identityTransform();
 };
+
+    
 

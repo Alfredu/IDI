@@ -28,7 +28,7 @@ void MyGLWidget::initializeGL ()
   znear = 0.4f;
   zfar = 3.0f;
   projectTransform();
-  viewTransform(glm::vec3(1, 1, 1), glm::vec3(0,0,0), glm::vec3(0,1,0));
+  viewTransform(glm::vec3(0, 0.01, 2), glm::vec3(0,0,0), glm::vec3(0,1,0));
 }
 
 void MyGLWidget::paintGL () 
@@ -45,6 +45,7 @@ void MyGLWidget::paintGL ()
   // pintem
   glDrawArrays(GL_TRIANGLES, 0, m.faces().size() * 3);
 
+  identityTransform();
   glBindVertexArray(VAO_Terra);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -57,8 +58,24 @@ void MyGLWidget::modelTransform ()
   glm::mat4 transform (1.0f);
   transform = glm::scale(transform, glm::vec3(scale));
   transform = glm::rotate(transform, rot, glm::vec3(0,1,0));
+  transform = glm::translate(transform, -baseHomer());
   glUniformMatrix4fv(transLoc, 1, GL_FALSE, &transform[0][0]);
 }
+
+glm::vec3 MyGLWidget::baseHomer(){
+  glm::vec3 base;
+  base.x = (minCapsa.x+maxCapsa.x)/2;
+  base.y = minCapsa.y;
+  base.z = (minCapsa.z + maxCapsa.z)/2;
+
+  return base;
+}
+
+void MyGLWidget::identityTransform(){
+  glm::mat4 transform(1.0f);
+  glUniformMatrix4fv(transLoc, 1, GL_FALSE, &transform[0][0]);
+}
+
 
 void MyGLWidget::resizeGL (int w, int h) 
 {
@@ -106,8 +123,8 @@ void MyGLWidget::createBuffers ()
   for(int i=0;i<4;i++){
     colorTerra[i] = glm::vec3(1.0,0.0,1.0);
   }
-  m.load("../../models/HomerProves.obj");
-  calculaCapsa();
+  m.load("../../models/Patricio.obj");
+  calculaCapsa(this->m);
   // Dades de la caseta
   // Dos VBOs, un amb posició i l'altre amb color
 
@@ -193,28 +210,42 @@ void MyGLWidget::projectTransform(){
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, &Proj[0][0]);
 }
 
-void MyGLWidget::calculaCapsa(){
+void MyGLWidget::calculaCapsa(Model &model){
   glm::vec3 min, max;
-  min.x = m.vertices()[0];
-  min.y = m.vertices()[1];
-  min.z = m.vertices()[2];
+  assert(model.vertices().size() > 3);
+  min.x = model.vertices()[0];
+  min.y = model.vertices()[1];
+  min.z = model.vertices()[2];
   max = min;
 
-  for(int i=0;i<m.vertices().size();i++){
+  for(int i=0;i<model.vertices().size();i++){
 
     if(i%3==0){
-      if(m.vertices()[0] < min.x){
-        min.x = m.vertices()[0];
+      if(model.vertices()[i] < min.x){
+        min.x = model.vertices()[i];
       }
-      if(m.vertices()[0] > max.x ){
-        max.x = m.vertices()[0];
+      if(model.vertices()[i] > max.x ){
+        max.x = model.vertices()[i];
       }
     }
     if(i%3==1){
+      if(model.vertices()[i] < min.y){
+        min.y = model.vertices()[i];
+      }
+      if(model.vertices()[i] > max.y){
+        max.y = model.vertices()[i];
+      }
 
     }
     if(i%3==2){
-
+      if(model.vertices()[i] < min.z){
+        min.z = model.vertices()[i];
+      }
+      if(model.vertices()[i] > max.z){
+        max.z = model.vertices()[i];
+      }
     }
+
+    minCapsa = min; maxCapsa = max;
   }
 }
