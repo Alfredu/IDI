@@ -63,6 +63,8 @@ class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     glm::vec3 baseHomer();
 
     void identityTransform();
+
+    void cameraTerceraPersona();
 };
 
     

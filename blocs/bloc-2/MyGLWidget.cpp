@@ -29,7 +29,15 @@ void MyGLWidget::initializeGL ()
   zfar = 3.0f;
   projectTransform();
   OBS = glm::vec3(0, 0.01, 2); VRP = glm::vec3(0,0,0); UP = glm::vec3(0,1,0);
+  cameraTerceraPersona();
   viewTransform();
+}
+
+void MyGLWidget::cameraTerceraPersona(){
+  float diametre= sqrt(pow(maxCapsa.x - minCapsa.x, 2) + pow(maxCapsa.y - minCapsa.y,2) + pow(maxCapsa.z - minCapsa.z,2));
+  float radi = diametre/2;
+  
+   
 }
 
 void MyGLWidget::paintGL () 
