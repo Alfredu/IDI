@@ -28,7 +28,8 @@ void MyGLWidget::initializeGL ()
   znear = 0.4f;
   zfar = 3.0f;
   projectTransform();
-  viewTransform(glm::vec3(0, 0.01, 2), glm::vec3(0,0,0), glm::vec3(0,1,0));
+  OBS = glm::vec3(0, 0.01, 2); VRP = glm::vec3(0,0,0); UP = glm::vec3(0,1,0);
+  viewTransform();
 }
 
 void MyGLWidget::paintGL () 
@@ -200,7 +201,7 @@ void MyGLWidget::carregaShaders()
   viewLoc = glGetUniformLocation(program->programId(), "view");
 }
 
-void MyGLWidget::viewTransform(glm::vec3 OBS, glm::vec3 VRP, glm::vec3 UP){
+void MyGLWidget::viewTransform(){
     glm::mat4 View = glm::lookAt(OBS, VRP, UP);
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &View[0][0]);
 }

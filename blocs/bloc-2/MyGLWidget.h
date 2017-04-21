@@ -51,8 +51,9 @@ class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     float rot;
 
     float FOV, ra, znear, zfar;
+    glm::vec3 OBS, VRP, UP;
 
-    void viewTransform(glm::vec3 OBS, glm::vec3 VRP, glm::vec3 UP);
+    void viewTransform();
 
     void projectTransform();
     void calculaCapsa(Model &model);
