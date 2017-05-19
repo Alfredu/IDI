@@ -8,6 +8,13 @@ in vec3 matdiff;
 in vec3 matspec;
 in float matshin;
 
+out vec3 vectorNorm;
+out vec4 vertexSCO;
+
+out vec3 matamb2;
+out vec3 matdiff2;
+out vec3 matspec2;
+out float matshin2;
 
 uniform mat4 proj;
 uniform mat4 view;
@@ -18,8 +25,6 @@ uniform vec3 posLlum;
 vec3 colFocus = vec3(0.8, 0.8, 0.8);
 vec3 llumAmbient = vec3(0.2, 0.2, 0.2);
 vec3 posFocus = vec3(1, 1, 1);  // en SCA
-
-out vec3 fcolor;
 
 vec3 Lambert (vec3 NormSCO, vec3 L) 
 {
@@ -58,17 +63,26 @@ vec3 Phong (vec3 NormSCO, vec3 L, vec4 vertSCO)
 
 void main()
 {	
+    matamb2 = matamb;
+    matdiff2 = matdiff;
+    matspec2 = matspec;
+    matshin2 = matshin;
+
     mat3 NormalMatrix = inverse(transpose(mat3 (view * TG)));
 
     vec3 vectorNorm = normalize(NormalMatrix * normal  );
 
-    vec3 scoLlum = vec3 ( view * vec4(posLlum, 1.0));
+    vec4 vertexSCO = view * TG * vec4(vertex, 1.0);
 
-    vec3 vecVertexLlum = normalize(vec3(0,0,0) - vec3 (view * TG * vec4 (vertex, 1.0)));
+
+    // vec3 scoLlum = vec3 ( view * vec4(posLlum, 1.0));
+    
+    // vec3 vecVertexLlum = normalize(scoLlum - vec3 (view * TG * vec4 (vertex, 1.0)));
 
     // fcolor = Lambert(vectorNorm, vecVertexLlum);
 
-    fcolor = Phong(vectorNorm, vecVertexLlum, view * TG * vec4(vertex, 1.0));
+    // fcolor = Phong(vectorNorm, vecVertexLlum, view * TG * vec4(vertex, 1.0));
+
 
     gl_Position = proj * view * TG * vec4 (vertex, 1.0);
 }
