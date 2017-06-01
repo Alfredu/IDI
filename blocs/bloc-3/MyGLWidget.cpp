@@ -29,7 +29,7 @@ void MyGLWidget::initializeGL ()
   createBuffers();
   projectTransform ();
   viewTransform ();
-  posLlum = glm::vec3(1,0,1);
+  posLlum = glm::vec3(1,1,1);
   glUniform3fv(posLlumLoc, 1, &posLlum[0]);
 }
 
@@ -151,9 +151,9 @@ void MyGLWidget::createBuffers ()
   };
 
   // Definim el material del terra
-  glm::vec3 amb(0.2,0,0.2);
+  glm::vec3 amb(0.1,0,0.9);
   glm::vec3 diff(0,0,0.8);
-  glm::vec3 spec(0,0,1);
+  glm::vec3 spec(0.9,0.9,1);
   float shin = 300;
 
   // Fem que aquest material afecti a tots els vèrtexs per igual
@@ -295,6 +295,7 @@ void MyGLWidget::viewTransform ()
   glm::mat4 View;  // Matriu de posició i orientació
   View = glm::translate(glm::mat4(1.f), glm::vec3(0, 0, -2*radiEsc));
   View = glm::rotate(View, -angleY, glm::vec3(0, 1, 0));
+  View = glm::rotate(View, -angleX, glm::vec3(1, 0, 0));
 
   glUniformMatrix4fv (viewLoc, 1, GL_FALSE, &View[0][0]);
 }
@@ -374,6 +375,7 @@ void MyGLWidget::mouseMoveEvent(QMouseEvent *e)
   {
     // Fem la rotació
     angleY += (e->x() - xClick) * M_PI / 180.0;
+    angleX += (e->y() - yClick) * M_PI / 180.0;
     viewTransform ();
   }
 

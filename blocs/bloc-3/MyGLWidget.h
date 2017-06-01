@@ -65,6 +65,7 @@ class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     InteractiveAction DoingInteractive;
     int xClick, yClick;
     float angleY;
+    float angleX;
     bool perspectiva;
 
     glm::vec3 posLlum;

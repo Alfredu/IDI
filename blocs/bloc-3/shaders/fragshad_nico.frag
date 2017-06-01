@@ -1,20 +1,23 @@
 #version 330 core
 
-out vec4 FragColor;
-
-in vec4 vertexSCO;
-in vec3 vectorNorm;
-
 in vec3 matamb2;
 in vec3 matdiff2;
 in vec3 matspec2;
 in float matshin2;
 
-uniform mat4 view;
-uniform vec3 posLlum;
 
-vec3 colFocus = vec3(1, 1, 1);
-vec3 llumAmbient = vec3(0.5, 0.5, 0.5);
+in vec3 normalSCO;
+in vec4 vertexSCO;
+
+out vec4 FragColor;
+
+// Valors per als components que necessitem dels focus de llum
+uniform vec3 colFocus;
+uniform vec3 llumAmbient;
+uniform vec3 posFocus;  // en SCA
+
+uniform mat4 view;
+
 
 vec3 Lambert (vec3 NormSCO, vec3 L) 
 {
@@ -22,8 +25,6 @@ vec3 Lambert (vec3 NormSCO, vec3 L)
 
     // Inicialitzem color a component ambient
     vec3 colRes = llumAmbient * matamb2;
-    
-   
 
     // Afegim component difusa, si n'hi ha
     if (dot (L, NormSCO) > 0)
@@ -35,7 +36,7 @@ vec3 Phong (vec3 NormSCO, vec3 L, vec4 vertSCO)
 {
     // Els vectors estan normalitzats
 
-    // Inicialitzem color a Lambert 
+    // Inicialitzem color a Lambert
     vec3 colRes = Lambert (NormSCO, L);
 
     // Calculem R i V
@@ -53,11 +54,12 @@ vec3 Phong (vec3 NormSCO, vec3 L, vec4 vertSCO)
     return (colRes + matspec2 * colFocus * shine); 
 }
 
-void main()
 
+
+void main()
 {	
-	vec4 posFocusSCO = view * vec4(posLlum, 1.0);
-	vec3 vecVertexLlum = normalize(posFocusSCO.xyz - vertexSCO.xyz);
-	vec3 fcolor = Phong(vectorNorm, vecVertexLlum,vertexSCO);
-	FragColor = vec4(fcolor,1.0);	
+	vec4 posFocusSCO = view * vec4 (posFocus,1.0);
+	vec3 L = normalize(posFocusSCO.xyz - vertexSCO.xyz);
+	vec3 fcolor = Phong(normalSCO,L,vertexSCO);
+	FragColor = vec4(fcolor,1);
 }

@@ -63,16 +63,17 @@ vec3 Phong (vec3 NormSCO, vec3 L, vec4 vertSCO)
 
 void main()
 {	
-    matamb2 = matamb;
-    matdiff2 = matdiff;
-    matspec2 = matspec;
-    matshin2 = matshin;
+    	matamb2=matamb;
+      matdiff2=matdiff;
+      matspec2=matspec;
+      matshin2=matshin;
+
 
     mat3 NormalMatrix = inverse(transpose(mat3 (view * TG)));
 
-    vec3 vectorNorm = normalize(NormalMatrix * normal  );
+    vectorNorm = normalize(NormalMatrix * normal  );
 
-    vec4 vertexSCO = view * TG * vec4(vertex, 1.0);
+    vertexSCO = view * TG * vec4(vertex, 1.0);
 
 
     // vec3 scoLlum = vec3 ( view * vec4(posLlum, 1.0));
