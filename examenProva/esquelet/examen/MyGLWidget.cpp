@@ -6,10 +6,10 @@ MyGLWidget::MyGLWidget (QWidget* parent) : QOpenGLWidget(parent)
 {
   setFocusPolicy(Qt::ClickFocus);  // per rebre events de teclat
   xClick = yClick = 0;
-  angleY = 0.0;
+  angleY = M_PI/4.0;
   perspectiva = true;
   DoingInteractive = NONE;
-  radiEsc = sqrt(3);
+  radiEsc = sqrt(80);
 }
 
 MyGLWidget::~MyGLWidget ()
@@ -26,11 +26,10 @@ void MyGLWidget::initializeGL ()
   glClearColor(0.5, 0.7, 1.0, 1.0); // defineix color de fons (d'esborrat)
   glEnable(GL_DEPTH_TEST);
   carregaShaders();
-  createBuffers();
+  createBuffersPatricio();
+  createBuffersTerra();
   projectTransform ();
   viewTransform ();
-  posLlum = glm::vec3(1,1,1);
-  glUniform3fv(posLlumLoc, 1, &posLlum[0]);
 }
 
 void MyGLWidget::paintGL () 
@@ -41,18 +40,22 @@ void MyGLWidget::paintGL ()
   // Activem el VAO per a pintar el terra 
   glBindVertexArray (VAO_Terra);
 
-  modelTransformTerra ();
-
-  // pintem
-  glDrawArrays(GL_TRIANGLES, 0, 12);
+  modelTransformIdent ();
+  // pintem terra
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
   // Activem el VAO per a pintar el Patricio
   glBindVertexArray (VAO_Patr);
 
-  modelTransformPatricio ();
-
-  // Pintem l'escena
+  modelTransformPatricio1 ();
+  // Pintem Patricio
   glDrawArrays(GL_TRIANGLES, 0, patr.faces().size()*3);
+
+  calculaCapsaModel (patr, escalaPat, centreBasePat, 1.5);
+
+  modelTransformPatricio2 ();
+  glDrawArrays(GL_TRIANGLES, 0, patr.faces().size()*3);
+
   
   glBindVertexArray(0);
 }
@@ -62,13 +65,60 @@ void MyGLWidget::resizeGL (int w, int h)
   glViewport(0, 0, w, h);
 }
 
-void MyGLWidget::createBuffers ()
+void MyGLWidget::modelTransformPatricio1 ()
+{
+  glm::mat4 TG(1.f);  // Matriu de transformació
+  TG = glm::translate(TG, glm::vec3(-4,0,4));
+  TG = glm::scale(TG, glm::vec3(escalaPat,escalaPat,escalaPat));
+  TG = glm::rotate(TG, float(90 * M_PI)/180.0f, glm::vec3(-1,0,0));
+  TG = glm::translate(TG, -centreBasePat);
+  
+  glUniformMatrix4fv (transLoc, 1, GL_FALSE, &TG[0][0]);
+}
+void MyGLWidget::modelTransformPatricio2 ()
+{
+  glm::mat4 TG(1.f);  // Matriu de transformació
+  TG = glm::translate(TG, glm::vec3(-4,0,-4));
+  TG = glm::scale(TG, glm::vec3(escalaPat,escalaPat,escalaPat));
+  TG = glm::rotate(TG, float(90 * M_PI)/180.0f, glm::vec3(-1,0,0));
+  TG = glm::translate(TG, -centreBasePat);
+  
+  glUniformMatrix4fv (transLoc, 1, GL_FALSE, &TG[0][0]);
+}
+
+void MyGLWidget::modelTransformIdent ()
+{
+  glm::mat4 TG(1.f);  // Matriu de transformació
+  glUniformMatrix4fv (transLoc, 1, GL_FALSE, &TG[0][0]);
+}
+
+void MyGLWidget::projectTransform ()
+{
+  glm::mat4 Proj;  // Matriu de projecció
+  if (perspectiva)
+    Proj = glm::perspective(float(M_PI/3.0), 1.0f, radiEsc, 3.0f*radiEsc);
+  else
+    Proj = glm::ortho(-radiEsc, radiEsc, -radiEsc, radiEsc, radiEsc, 3.0f*radiEsc);
+
+  glUniformMatrix4fv (projLoc, 1, GL_FALSE, &Proj[0][0]);
+}
+
+void MyGLWidget::viewTransform ()
+{
+  glm::mat4 View;  // Matriu de posició i orientació
+  View = glm::translate(glm::mat4(1.f), glm::vec3(0, -2, -2*radiEsc));
+  View = glm::rotate(View, -angleY, glm::vec3(0, 1, 0));
+
+  glUniformMatrix4fv (viewLoc, 1, GL_FALSE, &View[0][0]);
+}
+
+void MyGLWidget::createBuffersPatricio ()
 {
   // Carreguem el model de l'OBJ - Atenció! Abans de crear els buffers!
-  patr.load("../../models/Patricio.obj");
+  patr.load("./models/Patricio.obj");
 
   // Calculem la capsa contenidora del model
-  calculaCapsaModel ();
+  calculaCapsaModel (patr, escalaPat, centreBasePat, 1.0);
   
   // Creació del Vertex Array Object del Patricio
   glGenVertexArrays(1, &VAO_Patr);
@@ -125,49 +175,44 @@ void MyGLWidget::createBuffers ()
   glVertexAttribPointer(matshinLoc, 1, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(matshinLoc);
 
+  glBindVertexArray(0);
+}
+
+void MyGLWidget::createBuffersTerra ()
+{
   // Dades del terra
   // VBO amb la posició dels vèrtexs
-  glm::vec3 posterra[12] = {
-	glm::vec3(-1.0, -1.0, 1.0),
-	glm::vec3(1.0, -1.0, 1.0),
-	glm::vec3(-1.0, -1.0, -1.0),
-	glm::vec3(-1.0, -1.0, -1.0),
-	glm::vec3(1.0, -1.0, 1.0),
-	glm::vec3(1.0, -1.0, -1.0),
-	glm::vec3(-1.0, -1.0, -1.0),
-	glm::vec3(1.0, -1.0, -1.0),
-	glm::vec3(-1.0, 1.0, -1.0),
-	glm::vec3(-1.0, 1.0, -1.0),
-	glm::vec3(1.0, -1.0, -1.0),
-	glm::vec3(1.0, 1.0, -1.0)
+  glm::vec3 posterra[4] = {
+        glm::vec3(-5.0, 0.0, -5.0),
+        glm::vec3(-5.0, 0.0,  5.0),
+        glm::vec3( 5.0, 0.0, -5.0),
+        glm::vec3( 5.0, 0.0,  5.0)
   }; 
 
   // VBO amb la normal de cada vèrtex
-  glm::vec3 norm1 (0,1,0);
-  glm::vec3 norm2 (0,0,1);
-  glm::vec3 normterra[12] = {
-	norm1, norm1, norm1, norm1, norm1, norm1, // la normal (0,1,0) per als primers dos triangles
-	norm2, norm2, norm2, norm2, norm2, norm2  // la normal (0,0,1) per als dos últims triangles
+  glm::vec3 normt (0,1,0);
+  glm::vec3 normterra[4] = {
+	normt, normt, normt, normt
   };
 
   // Definim el material del terra
-  glm::vec3 amb(0.1,0,0.9);
-  glm::vec3 diff(0,0,0.8);
-  glm::vec3 spec(0.9,0.9,1);
-  float shin = 300;
+  glm::vec3 amb(0,0.1,0);
+  glm::vec3 diff(0.2,0.6,0.1);
+  glm::vec3 spec(0.5,0.5,0.5);
+  float shin = 100;
 
   // Fem que aquest material afecti a tots els vèrtexs per igual
-  glm::vec3 matambterra[12] = {
-	amb, amb, amb, amb, amb, amb, amb, amb, amb, amb, amb, amb
+  glm::vec3 matambterra[4] = {
+	amb, amb, amb, amb
   };
-  glm::vec3 matdiffterra[12] = {
-	diff, diff, diff, diff, diff, diff, diff, diff, diff, diff, diff, diff
+  glm::vec3 matdiffterra[4] = {
+	diff, diff, diff, diff
   };
-  glm::vec3 matspecterra[12] = {
-	spec, spec, spec, spec, spec, spec, spec, spec, spec, spec, spec, spec
+  glm::vec3 matspecterra[4] = {
+	spec, spec, spec, spec
   };
-  float matshinterra[12] = {
-	shin, shin, shin, shin, shin, shin, shin, shin, shin, shin, shin, shin
+  float matshinterra[4] = {
+	shin, shin, shin, shin
   };
 
 // Creació del Vertex Array Object del terra
@@ -261,69 +306,32 @@ void MyGLWidget::carregaShaders()
   transLoc = glGetUniformLocation (program->programId(), "TG");
   projLoc = glGetUniformLocation (program->programId(), "proj");
   viewLoc = glGetUniformLocation (program->programId(), "view");
-  posLlumLoc = glGetUniformLocation(program->programId(), "posLlum");
 }
 
-void MyGLWidget::modelTransformPatricio ()
-{
-  glm::mat4 TG(1.f);  // Matriu de transformació
-  TG = glm::scale(TG, glm::vec3(escala, escala, escala));
-  TG = glm::translate(TG, -centrePatr);
-  
-  glUniformMatrix4fv (transLoc, 1, GL_FALSE, &TG[0][0]);
-}
-
-void MyGLWidget::modelTransformTerra ()
-{
-  glm::mat4 TG(1.f);  // Matriu de transformació
-  glUniformMatrix4fv (transLoc, 1, GL_FALSE, &TG[0][0]);
-}
-
-void MyGLWidget::projectTransform ()
-{
-  glm::mat4 Proj;  // Matriu de projecció
-  if (perspectiva)
-    Proj = glm::perspective(float(M_PI/3.0), 1.0f, radiEsc, 3.0f*radiEsc);
-  else
-    Proj = glm::ortho(-radiEsc, radiEsc, -radiEsc, radiEsc, radiEsc, 3.0f*radiEsc);
-
-  glUniformMatrix4fv (projLoc, 1, GL_FALSE, &Proj[0][0]);
-}
-
-void MyGLWidget::viewTransform ()
-{
-  glm::mat4 View;  // Matriu de posició i orientació
-  View = glm::translate(glm::mat4(1.f), glm::vec3(0, 0, -2*radiEsc));
-  View = glm::rotate(View, -angleY, glm::vec3(0, 1, 0));
-  View = glm::rotate(View, -angleX, glm::vec3(1, 0, 0));
-
-  glUniformMatrix4fv (viewLoc, 1, GL_FALSE, &View[0][0]);
-}
-
-void MyGLWidget::calculaCapsaModel ()
+void MyGLWidget::calculaCapsaModel (Model &p, float &escala, glm::vec3 &centreBase, float escalaDesitjada)
 {
   // Càlcul capsa contenidora i valors transformacions inicials
   float minx, miny, minz, maxx, maxy, maxz;
-  minx = maxx = patr.vertices()[0];
-  miny = maxy = patr.vertices()[1];
-  minz = maxz = patr.vertices()[2];
-  for (unsigned int i = 3; i < patr.vertices().size(); i+=3)
+  minx = maxx = p.vertices()[0];
+  miny = maxy = p.vertices()[1];
+  minz = maxz = p.vertices()[2];
+  for (unsigned int i = 3; i < p.vertices().size(); i+=3)
   {
-    if (patr.vertices()[i+0] < minx)
-      minx = patr.vertices()[i+0];
-    if (patr.vertices()[i+0] > maxx)
-      maxx = patr.vertices()[i+0];
-    if (patr.vertices()[i+1] < miny)
-      miny = patr.vertices()[i+1];
-    if (patr.vertices()[i+1] > maxy)
-      maxy = patr.vertices()[i+1];
-    if (patr.vertices()[i+2] < minz)
-      minz = patr.vertices()[i+2];
-    if (patr.vertices()[i+2] > maxz)
-      maxz = patr.vertices()[i+2];
+    if (p.vertices()[i+0] < minx)
+      minx = p.vertices()[i+0];
+    if (p.vertices()[i+0] > maxx)
+      maxx = p.vertices()[i+0];
+    if (p.vertices()[i+1] < miny)
+      miny = p.vertices()[i+1];
+    if (p.vertices()[i+1] > maxy)
+      maxy = p.vertices()[i+1];
+    if (p.vertices()[i+2] < minz)
+      minz = p.vertices()[i+2];
+    if (p.vertices()[i+2] > maxz)
+      maxz = p.vertices()[i+2];
   }
-  escala = 2.0/(maxy-miny);
-  centrePatr[0] = (minx+maxx)/2.0; centrePatr[1] = (miny+maxy)/2.0; centrePatr[2] = (minz+maxz)/2.0;
+  escala = escalaDesitjada/(maxy-miny);
+  centreBase[0] = (minx+maxx)/2.0; centreBase[1] = miny; centreBase[2] = (minz+maxz)/2.0;
 }
 
 void MyGLWidget::keyPressEvent(QKeyEvent* event) 
@@ -333,16 +341,6 @@ void MyGLWidget::keyPressEvent(QKeyEvent* event)
     case Qt::Key_O: { // canvia òptica entre perspectiva i axonomètrica
       perspectiva = !perspectiva;
       projectTransform ();
-      break;
-    }
-    case Qt::Key_L: { //canvia posicio llum
-      posLlum.x+=0.2;
-      glUniform3fv(posLlumLoc, 1, &posLlum[0]);
-      break;
-    }
-    case Qt::Key_K: { //canvia posicio llum
-      posLlum.x-=0.2;
-      glUniform3fv(posLlumLoc, 1, &posLlum[0]);
       break;
     }
     default: event->ignore(); break;
@@ -375,7 +373,6 @@ void MyGLWidget::mouseMoveEvent(QMouseEvent *e)
   {
     // Fem la rotació
     angleY += (e->x() - xClick) * M_PI / 180.0;
-    angleX += (e->y() - yClick) * M_PI / 180.0;
     viewTransform ();
   }
 
