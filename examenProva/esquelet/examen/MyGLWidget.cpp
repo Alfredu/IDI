@@ -6,7 +6,7 @@ MyGLWidget::MyGLWidget (QWidget* parent) : QOpenGLWidget(parent)
 {
   setFocusPolicy(Qt::ClickFocus);  // per rebre events de teclat
   xClick = yClick = 0;
-  angleY = M_PI/4.0;
+  angleY = 0;
   perspectiva = true;
   DoingInteractive = NONE;
   radiEsc = sqrt(80);
@@ -28,6 +28,7 @@ void MyGLWidget::initializeGL ()
   carregaShaders();
   createBuffersPatricio();
   createBuffersTerra();
+  calculaEscena();
   projectTransform ();
   viewTransform ();
 }
@@ -51,7 +52,6 @@ void MyGLWidget::paintGL ()
   // Pintem Patricio
   glDrawArrays(GL_TRIANGLES, 0, patr.faces().size()*3);
 
-  calculaCapsaModel (patr, escalaPat, centreBasePat, 1.5);
 
   modelTransformPatricio2 ();
   glDrawArrays(GL_TRIANGLES, 0, patr.faces().size()*3);
@@ -70,7 +70,7 @@ void MyGLWidget::modelTransformPatricio1 ()
   glm::mat4 TG(1.f);  // Matriu de transformació
   TG = glm::translate(TG, glm::vec3(-4,0,4));
   TG = glm::scale(TG, glm::vec3(escalaPat,escalaPat,escalaPat));
-  TG = glm::rotate(TG, float(90 * M_PI)/180.0f, glm::vec3(-1,0,0));
+  TG = glm::rotate(TG, float(135 * M_PI)/180.0f, glm::vec3(0,1,0));
   TG = glm::translate(TG, -centreBasePat);
   
   glUniformMatrix4fv (transLoc, 1, GL_FALSE, &TG[0][0]);
@@ -79,8 +79,8 @@ void MyGLWidget::modelTransformPatricio2 ()
 {
   glm::mat4 TG(1.f);  // Matriu de transformació
   TG = glm::translate(TG, glm::vec3(-4,0,-4));
-  TG = glm::scale(TG, glm::vec3(escalaPat,escalaPat,escalaPat));
-  TG = glm::rotate(TG, float(90 * M_PI)/180.0f, glm::vec3(-1,0,0));
+  TG = glm::scale(TG, glm::vec3(escalaPat2,escalaPat2,escalaPat2));
+  TG = glm::rotate(TG, float(45 * M_PI)/180.0f, glm::vec3(0,1,0));
   TG = glm::translate(TG, -centreBasePat);
   
   glUniformMatrix4fv (transLoc, 1, GL_FALSE, &TG[0][0]);
@@ -96,7 +96,7 @@ void MyGLWidget::projectTransform ()
 {
   glm::mat4 Proj;  // Matriu de projecció
   if (perspectiva)
-    Proj = glm::perspective(float(M_PI/3.0), 1.0f, radiEsc, 3.0f*radiEsc);
+    Proj = glm::perspective(FOV, ra, znear, zfar);
   else
     Proj = glm::ortho(-radiEsc, radiEsc, -radiEsc, radiEsc, radiEsc, 3.0f*radiEsc);
 
@@ -105,11 +105,29 @@ void MyGLWidget::projectTransform ()
 
 void MyGLWidget::viewTransform ()
 {
-  glm::mat4 View;  // Matriu de posició i orientació
-  View = glm::translate(glm::mat4(1.f), glm::vec3(0, -2, -2*radiEsc));
+  glm::mat4 View = glm::lookAt(OBS,VRP,UP);  // Matriu de posició i orientació
+  // View = glm::translate(glm::mat4(1.f), glm::vec3(0, -2, -2*radiEsc));
   View = glm::rotate(View, -angleY, glm::vec3(0, 1, 0));
+  View = glm::rotate(View, -angleX, glm::vec3(1, 0, 0));
 
   glUniformMatrix4fv (viewLoc, 1, GL_FALSE, &View[0][0]);
+}
+
+void MyGLWidget::calculaEscena(){
+  float dx = 10.0;
+  float dy = 0.5;
+  float dz = 10.5;
+
+  OBS = glm::vec3(0,2*radiEsc,2*radiEsc);
+  VRP = glm::vec3(0,0,0);
+  UP = glm::vec3(0,1,0);
+  radiEsc = sqrt(dx * dx + dy * dy + dz * dz)/2.0;
+  dist = sqrt(OBS[0]*OBS[0] + OBS[1]*OBS[1] + OBS[2]*OBS[2]);
+
+  ra = 1.0;
+  FOV = 2*(asin(radiEsc/dist));
+  znear = dist - radiEsc;
+  zfar = dist + radiEsc;
 }
 
 void MyGLWidget::createBuffersPatricio ()
@@ -118,8 +136,8 @@ void MyGLWidget::createBuffersPatricio ()
   patr.load("./models/Patricio.obj");
 
   // Calculem la capsa contenidora del model
-  calculaCapsaModel (patr, escalaPat, centreBasePat, 1.0);
-  
+  calculaCapsaModel (patr, escalaPat, centreBasePat);
+  calculaEscena();
   // Creació del Vertex Array Object del Patricio
   glGenVertexArrays(1, &VAO_Patr);
   glBindVertexArray(VAO_Patr);
@@ -306,9 +324,13 @@ void MyGLWidget::carregaShaders()
   transLoc = glGetUniformLocation (program->programId(), "TG");
   projLoc = glGetUniformLocation (program->programId(), "proj");
   viewLoc = glGetUniformLocation (program->programId(), "view");
+
+  tipusLlumLoc = glGetUniformLocation(program->programId(), "tipus");
+  tipusLlum = 1;
+  glUniform1f(tipusLlum, tipusLlum);
 }
 
-void MyGLWidget::calculaCapsaModel (Model &p, float &escala, glm::vec3 &centreBase, float escalaDesitjada)
+void MyGLWidget::calculaCapsaModel (Model &p, float &escala, glm::vec3 &centreBase)
 {
   // Càlcul capsa contenidora i valors transformacions inicials
   float minx, miny, minz, maxx, maxy, maxz;
@@ -330,7 +352,8 @@ void MyGLWidget::calculaCapsaModel (Model &p, float &escala, glm::vec3 &centreBa
     if (p.vertices()[i+2] > maxz)
       maxz = p.vertices()[i+2];
   }
-  escala = escalaDesitjada/(maxy-miny);
+  escalaPat = 1.0/(maxy-miny);
+  escalaPat2 = 1.5 / (maxy-miny);
   centreBase[0] = (minx+maxx)/2.0; centreBase[1] = miny; centreBase[2] = (minz+maxz)/2.0;
 }
 
@@ -342,6 +365,14 @@ void MyGLWidget::keyPressEvent(QKeyEvent* event)
       perspectiva = !perspectiva;
       projectTransform ();
       break;
+    }
+    case Qt::Key_L:{
+      tipusLlum = !tipusLlum;
+
+
+      glUniform1f(tipusLlumLoc, tipusLlum);
+      break;
+      
     }
     default: event->ignore(); break;
   }
@@ -373,6 +404,7 @@ void MyGLWidget::mouseMoveEvent(QMouseEvent *e)
   {
     // Fem la rotació
     angleY += (e->x() - xClick) * M_PI / 180.0;
+    angleX += (e->y() - yClick) * M_PI / 180.0;
     viewTransform ();
   }
 

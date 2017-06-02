@@ -43,8 +43,8 @@ class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     void modelTransformIdent ();
     void modelTransformPatricio1 ();
     void modelTransformPatricio2 ();
-    void calculaCapsaModel (Model &p, float &escala, glm::vec3 &CentreBase, float escalaDesitjada);
-
+    void calculaCapsaModel (Model &p, float &escala, glm::vec3 &CentreBase);
+    void calculaEscena();
     // VAO i VBO names
     GLuint VAO_Patr, VBO_PatrPos, VBO_PatrNorm, VBO_PatrMatamb, VBO_PatrMatdiff, VBO_PatrMatspec, VBO_PatrMatshin;
     GLuint VAO_Terra, VBO_TerraPos, VBO_TerraNorm, VBO_TerraMatamb, VBO_TerraMatdiff, VBO_TerraMatspec, VBO_TerraMatshin;
@@ -60,8 +60,15 @@ class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     // paràmetres calculats a partir de la capsa contenidora del model
     glm::vec3 centreBasePat;
     float escalaPat;
+    float escalaPat2;
     // radi de l'escena
     float radiEsc;
+    float dist,FOV,ra,znear,zfar;
+
+    float tipusLlumLoc;
+    float tipusLlum;
+
+    glm::vec3 OBS,VRP,UP;
 
     typedef  enum {NONE, ROTATE} InteractiveAction;
     InteractiveAction DoingInteractive;

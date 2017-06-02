@@ -11,11 +11,12 @@ in float matshin;
 uniform mat4 proj;
 uniform mat4 view;
 uniform mat4 TG;
+uniform float tipus;
 
 // Valors per als components que necessitem dels focus de llum
-vec3 colFocus = vec3(0.8, 0.8, 0.8);
+vec3 colFocus = vec3(1, 1, 1);
 vec3 llumAmbient = vec3(0.2, 0.2, 0.2);
-vec3 posFocus = vec3(1, 1, 1);  // en SCA
+vec3 posFocus = vec3(5, 3, 5);  // en SCA
 
 out vec3 fcolor;
 
@@ -56,6 +57,18 @@ vec3 Phong (vec3 NormSCO, vec3 L, vec4 vertSCO)
 
 void main()
 {	
-    fcolor = matdiff;
+    mat3 normalMatrix = inverse(transpose(mat3(view * TG)));
+    vec3 vectorNorm = normalize(normalMatrix * normal);
+
+  
+    vec4 vertexSCO = view * TG * vec4(vertex,1.0);
+    vec3 scoLlum;
+    if(tipus == 1)
+      scoLlum = vec3(view * vec4(posFocus, 1.0));
+    else
+      scoLlum = vec3(vec4(posFocus, 1.0));
+    vec3 vecVertexLlum = normalize(scoLlum - vec3(view * TG * vec4(vertex, 1.0)));
+
+    fcolor = Phong(vectorNorm, vecVertexLlum, vertexSCO);
     gl_Position = proj * view * TG * vec4 (vertex, 1.0);
 }

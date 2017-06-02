@@ -1,0 +1,19 @@
+codis guais:
+
+
+dx = disametre en les x
+dy = diametre en les y
+dz = diametre en les z
+
+radi = sqrt(dx² + dy² + dz²)/2.0
+
+VRP = centre circumferenica (0,0,0)?
+OBS = (0,radi, radi)
+UP = (0,1,0)
+
+
+dist = distancia de lobservador al centre, p.ex sqrt(OBS[0]² + OBS[1]² + OBS[2]²)
+ra = 1?
+FOV = 2*(asin/rad/dist))
+znear = dist - radi
+zfar = dist+radi
