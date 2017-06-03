@@ -65,8 +65,10 @@ void main()
     vec3 scoLlum;
     if(tipus == 1)
       scoLlum = vec3(view * vec4(posFocus, 1.0));
-    else
+    else{
       scoLlum = vec3(vec4(posFocus, 1.0));
+      colFocus = vec3(1,0,0);
+    }
     vec3 vecVertexLlum = normalize(scoLlum - vec3(view * TG * vec4(vertex, 1.0)));
 
     fcolor = Phong(vectorNorm, vecVertexLlum, vertexSCO);

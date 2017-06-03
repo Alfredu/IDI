@@ -78,7 +78,7 @@ void MyGLWidget::modelTransformPatricio1 ()
 void MyGLWidget::modelTransformPatricio2 ()
 {
   glm::mat4 TG(1.f);  // Matriu de transformació
-  TG = glm::translate(TG, glm::vec3(-4,0,-4));
+  TG = glm::translate(TG, posPat2);
   TG = glm::scale(TG, glm::vec3(escalaPat2,escalaPat2,escalaPat2));
   TG = glm::rotate(TG, float(45 * M_PI)/180.0f, glm::vec3(0,1,0));
   TG = glm::translate(TG, -centreBasePat);
@@ -105,6 +105,7 @@ void MyGLWidget::projectTransform ()
 
 void MyGLWidget::viewTransform ()
 {
+
   glm::mat4 View = glm::lookAt(OBS,VRP,UP);  // Matriu de posició i orientació
   // View = glm::translate(glm::mat4(1.f), glm::vec3(0, -2, -2*radiEsc));
   View = glm::rotate(View, -angleY, glm::vec3(0, 1, 0));
@@ -328,6 +329,8 @@ void MyGLWidget::carregaShaders()
   tipusLlumLoc = glGetUniformLocation(program->programId(), "tipus");
   tipusLlum = 1;
   glUniform1f(tipusLlum, tipusLlum);
+  primeraPersona = false;
+  posPat2 = glm::vec3(-4,0,-4);
 }
 
 void MyGLWidget::calculaCapsaModel (Model &p, float &escala, glm::vec3 &centreBase)
@@ -373,6 +376,15 @@ void MyGLWidget::keyPressEvent(QKeyEvent* event)
       glUniform1f(tipusLlumLoc, tipusLlum);
       break;
       
+    }
+
+    case Qt::Key_D:{
+      posPat2.x+=0.5; posPat2.z+=0.5;
+      break;
+    }
+    case Qt::Key_A:{
+      posPat2.x-=0.5; posPat2.z-=0.5;
+      break;
     }
     default: event->ignore(); break;
   }

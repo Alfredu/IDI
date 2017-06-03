@@ -59,6 +59,8 @@ class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     Model patr;
     // paràmetres calculats a partir de la capsa contenidora del model
     glm::vec3 centreBasePat;
+    glm::vec3 centrePat2;
+    glm::vec3 posPat2;
     float escalaPat;
     float escalaPat2;
     // radi de l'escena
@@ -75,5 +77,7 @@ class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     int xClick, yClick;
     float angleY, angleX;
     bool perspectiva;
+
+    bool primeraPersona;
 };
 
