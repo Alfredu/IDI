@@ -63,8 +63,10 @@ void main()
   
     vec4 vertexSCO = view * TG * vec4(vertex,1.0);
     vec3 scoLlum;
-    if(tipus == 1)
+    if(tipus == 1){
       scoLlum = vec3(view * vec4(posFocus, 1.0));
+      colFocus = vec3(1, 1, 1);
+    }
     else{
       scoLlum = vec3(vec4(posFocus, 1.0));
       colFocus = vec3(1,0,0);

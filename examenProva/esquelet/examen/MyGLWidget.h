@@ -63,6 +63,7 @@ class MyGLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
     glm::vec3 posPat2;
     float escalaPat;
     float escalaPat2;
+    glm::vec3 rotPat2;
     // radi de l'escena
     float radiEsc;
     float dist,FOV,ra,znear,zfar;
